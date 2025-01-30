@@ -1,6 +1,13 @@
 import UIKit
 
 class AddUserViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSource {
+    
+    let genderOptions = ["Male", "Female", "Other", "Prefer not to say"]
+    var selectedGender: String = "Other"
+    var user: User?
+    var userIndex: Int?
+    var onSave: ((User, Int?) -> Void)?
+    
     @IBOutlet weak var firstName: UITextField!
     @IBOutlet weak var lastName: UITextField!
     @IBOutlet weak var birthDate: UIDatePicker!
@@ -9,37 +16,21 @@ class AddUserViewController: UIViewController, UIPickerViewDelegate, UIPickerVie
     @IBOutlet weak var phone: UITextField!
     @IBOutlet weak var saveButton: UIButton!
     
-    let genderOptions = ["Male", "Female", "Other", "Prefer not to say"]
-    var selectedGender: String = "Other"
-    
-    //var ViewModel: UsersViewModel?
-    var onSave: ((User) -> Void)?
     
     override func viewDidLoad() {
         super.viewDidLoad()
         gender.delegate = self
         gender.dataSource = self
-    }
-    
-    @IBAction func saveUser(_ sender: Any) {
-        guard let firstName = firstName.text,
-              let lastName = lastName.text,
-              let email = emailID.text,
-              let phone = phone.text,
-                isValidEmail(email),
-                isValidPhone(phone) else {return}
-        let newUser = User(firstName: firstName, lastName: lastName, gender: selectedGender, email: email, phone: phone, DOB: birthDate.date)
         
-        onSave?(newUser)
-        
-        navigationController?.popViewController(animated: true)
-    }
-    
-    @IBAction func populate(_ sender: Any) {
-        firstName.text = "Hemanth"
-        lastName.text = "Palani"
-        emailID.text = "hemanthpalani001@gmail.com"
-        phone.text = "9150998077"
+        if let user = user {
+            print(user)
+            firstName.text = user.firstName
+            lastName.text = user.lastName
+            emailID.text = user.email
+            phone.text = user.phone
+            birthDate.date = user.DOB
+            selectedGender = user.gender
+        }
     }
     
     func numberOfComponents(in pickerView: UIPickerView) -> Int {
@@ -68,6 +59,35 @@ class AddUserViewController: UIViewController, UIPickerViewDelegate, UIPickerVie
         let phoneRegex = "^[0-9]{10}$"
         let phonePredicate = NSPredicate(format: "SELF MATCHES %@", phoneRegex)
         return phonePredicate.evaluate(with: phone)
+    }
+    
+    @IBAction func cancelPresentation(_ sender: Any) {
+        dismiss(animated: true)
+    }
+    @IBAction func saveUser(_ sender: Any) {
+        guard let firstName = firstName.text,
+              let lastName = lastName.text,
+              let email = emailID.text,
+              let phone = phone.text,
+                isValidEmail(email),
+                isValidPhone(phone) else {return}
+        let newUser = User(firstName: firstName, lastName: lastName, gender: selectedGender, email: email, phone: phone, DOB: birthDate.date)
+        
+        if let index = userIndex {
+            onSave?(newUser, index)
+        } else {
+            onSave?(newUser, nil)
+        }
+        //onSave?(newUser, users.count)
+        
+        navigationController?.popViewController(animated: true)
+    }
+    
+    @IBAction func populate(_ sender: Any) {
+        firstName.text = "Hemanth"
+        lastName.text = "Palani"
+        emailID.text = "hemanthpalani001@gmail.com"
+        phone.text = "9150998077"
     }
 
 }

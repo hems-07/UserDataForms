@@ -1,6 +1,7 @@
 import UIKit
 
 class UserListViewController: UITableViewController {
+    
     var users: [User] = []
     @IBOutlet weak var noUser: UIStackView!
     
@@ -11,22 +12,6 @@ class UserListViewController: UITableViewController {
         self.navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .add, target: self, action: #selector(addUser))
         tableView.dataSource = self
         
-    }
-    
-    @objc func addUser() {
-        let storyboard = UIStoryboard(name: "Main", bundle: nil)
-        if let addUserVC = storyboard.instantiateViewController(withIdentifier: "AddUserViewController") as? AddUserViewController {
-            addUserVC.onSave = { [weak self] newUser in
-                guard let self = self else { return }
-                self.users.append(newUser)
-                self.tableView.reloadData()
-                if !users.isEmpty {
-                    noUser.isHidden = true
-                }
-                //print("New User: \(users)")
-            }
-            navigationController?.pushViewController(addUserVC, animated: true)
-        }
     }
 
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
@@ -44,12 +29,48 @@ class UserListViewController: UITableViewController {
     }
     
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        if segue.identifier == "ShowUserDetailSegue" {
-            if let detailVC = segue.destination as? UserDetailViewController,
+        if segue.identifier == "ShowUserDetailSegue",
+           let detailVC = segue.destination as? UserDetailViewController,
                let indexPath = tableView.indexPathForSelectedRow {
-                let selectedUser = users[indexPath.row]
-                detailVC.user = selectedUser
+                detailVC.user = users[indexPath.row]
+                detailVC.userIndex = indexPath.row
+                detailVC.onSave = { [weak self] updatedUser, index in
+                    guard let self = self else { return }
+                    self.users[index] = updatedUser
+                    self.tableView.reloadData()
+                }
+        }
+    }
+    
+    @objc func addUser() {
+        let storyboard = UIStoryboard(name: "Main", bundle: nil)
+        if let addUserVC = storyboard.instantiateViewController(withIdentifier: "AddUserViewController") as? AddUserViewController {
+            
+            addUserVC.onSave = { [weak self] newUser, index in
+                guard let self = self else { return }
+                self.users.append(newUser)
+                self.tableView.reloadData()
+                if !users.isEmpty {
+                    noUser.isHidden = true
+                }
+                dismiss(animated: true, completion: nil)
+                //print("New User: \(users)")
             }
+            //navigationController?.pushViewController(addUserVC, animated: true)
+            self.present(addUserVC, animated: true, completion: nil)
         }
     }
 }
+
+/*
+ override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+     if segue.identifier == "ShowUserDetailSegue" {
+         if let detailVC = segue.destination as? UserDetailViewController,
+            let indexPath = tableView.indexPathForSelectedRow {
+             let selectedUser = users[indexPath.row]
+             detailVC.user = selectedUser
+             detailVC.users = users
+         }
+     }
+ }
+ */

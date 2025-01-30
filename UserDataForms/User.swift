@@ -1,6 +1,6 @@
 import Foundation
 
-struct User {
+struct User{
     var id: UUID = UUID()
     let firstName: String
     let lastName: String
@@ -8,7 +8,6 @@ struct User {
     let email: String
     let phone: String
     let DOB: Date
-    
 }
 
 class UsersViewModel {
